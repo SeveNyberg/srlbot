@@ -5,9 +5,6 @@ from srlbot_plugins import R_index, timestamp, post, read
 from authkey import token
 
 
-# The API URL thourgh which posts are read for commands
-read_url = lambda channel_id: f"https://mattermost.utu.fi/api/v4/channels/{channel_id}/posts"
-
 # Channel id for bot-test
 channel_bot_test = "nunmku933pbntxio81uy8hfmwy"
 # Channel id for aurora-watch
@@ -41,32 +38,30 @@ def main():
 
             if R > 125 and time.time()-t_prev_msg > 7200:
 
-                message =  f"Current estimated R-index at Nurmijärvi ({R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
+                message =  f"Current  R-index at Nurmijärvi ({R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
                 # For post testing
                 #message = "Testing...""
                 
                 try:
                     post(channel_aurora, message)
-                    t_prev = time.time()
+                    t_prev_msg = time.time()
                 except:
                     print("Problem at aurora post at", timestamp())
                 
-        # Get the posts from the channel
-        # json_data = {
-        #     "since": int(time.time()*1000-1000)
-        # }
-
-        #response = requests.get(read_url(channel_bot_test), headers=headers, json=json_data)
-        #print(response.text)
-                
-        ###curl -H 'Authorization: Bearer 4jymwea6btbqmre61wx6XXXXXX' http://localhost:8065/api/v4/channels/y4srrjqzoj8aunnnakb8px79eo/posts\?since\=1603220326473
+        response = read(channel_bot_test)
+        
+        if response == "--help":
+            post(channel_bot_test, "--help for help")
             
-
+        if response == "--magact":
+            post(channel_bot_test, f"Current R-index at Nurmijärvi: {R:.2f}")
+        
+        
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
         print("Program stopped at", timestamp())
-    except:
-        print("Program rebooted at", timestamp())
-        main()
+    #except:
+       # print("Program stopped at", timestamp())
+        #main()

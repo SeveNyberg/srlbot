@@ -5,6 +5,7 @@ import time
 import datetime
 from authkey import token
 
+
 def R_index():
     # Making a GET request
     r = requests.get("https://space.fmi.fi/image/realtime/UT/NUR/NURdata_01.txt")
@@ -22,6 +23,7 @@ def R_index():
     
     return R_index
 
+
 def timestamp():
     return datetime.datetime.fromtimestamp(time.time()).strftime('%c')
 
@@ -29,28 +31,54 @@ def timestamp():
 def post(channel_id = None, message = None):
     
     if channel_id == None:
-        print("No channel ID provided!")
-        return
+        raise("No channel ID provided!")
     
     if message == None:
-        print("No message provided!")
-        return
+        raise("No message provided!")
+
     
     # The API URL through which posts are made
     post_url = "https://mattermost.utu.fi/api/v4/posts"
-
-
-    headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {token}",
-    }
-
-    json_data = {
-        "channel_id": channel_id,
-        "message": message,
-    }
+    headers = { "Content-Type": "application/json",
+                "Authorization": f"Bearer {token}",
+                }
+    json_data = {   "channel_id": channel_id,
+                    "message": message,
+                    }
     
     response = requests.post(post_url, headers=headers, json=json_data)
         
-def read():
-    pass
+        
+def read(channel_id = None):
+    
+    if channel_id == None:
+        raise("No channel ID provided!")
+    
+    # The API URL thourgh which posts are read for commands
+    read_url = lambda channel_id: f"https://mattermost.utu.fi/api/v4/channels/{channel_id}/posts"
+    
+    #curl -H 'Authorization: Bearer 4jymwea6btbqmre61wx6XXXXXX' http://localhost:8065/api/v4/channels/y4srrjqzoj8aunnnakb8px79eo/posts\?since\=1603220326473
+    headers = { "Content-Type": "application/json",
+               "Authorization": f"Bearer {token}",
+               }
+
+    params = {
+        'since': int(time.time()*1000-1500),
+    }
+
+    response = requests.get(
+        read_url(channel_id),
+        params=params,
+        headers=headers,
+    )   
+
+    data = response.content.decode()
+    data = data[data.find("posts\":{") + len("posts\":{"):]
+    
+    if data[0] == "}":
+        return ""
+    else:
+        data = data[data.find("message\":\"") + len("message\":\""):]
+        data = data[:data.find("\"")]
+
+    return data
