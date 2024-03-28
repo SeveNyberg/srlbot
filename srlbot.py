@@ -30,7 +30,7 @@ def main():
     
     print("Bot booted.")
     t_prev_msg = 0
-    t_prev_msrt = 0
+    t_prev_msrt = 1
        
     while(True):
         
