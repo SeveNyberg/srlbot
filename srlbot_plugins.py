@@ -17,8 +17,16 @@ def R_index():
     # Fetch the JSON-file
     r = requests.get("https://space.fmi.fi/MIRACLE/RWC/r-index/api/NUR.json")
     
-    # Parse the most recent value out and return it
-    return json.loads(r.content)["data"][0]["y"][-1]
+    # Get the time data and R-index data for all different categories
+    data = json.loads(r.content)["data"]
+    data_t = [data[i]["x"][-1] for i in range(len(data)) if len(data[i]["x"]) != 0]
+    data_r = [data[i]["y"][-1] for i in range(len(data)) if len(data[i]["y"]) != 0]
+
+    # Order according to time and pick newest
+    R = [x for _, x in sorted(zip(data_t, data_r))][-1]
+
+    # Return the R-index
+    return R
 
 
 def timestamp():

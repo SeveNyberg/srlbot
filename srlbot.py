@@ -1,3 +1,5 @@
+ #!/usr/bin/env python3
+
 import time
 from srlbot_plugins import R_index, timestamp, post, read
 from authkey import token
@@ -32,10 +34,10 @@ def main():
             try:
                 R = R_index()
             except:
-                print("Problem at R-index at", timestamp())
+                raise("Problem at R-index at", timestamp())
         
-            # Check if R-index exceeds the set threshold and it has been enough time from last post
-            if R > 125 and time.time()-t_prev_msg > 72000:
+            # Check if R-index exceeds the set threshold and it has been enough time from last post (~20 h) 
+            if R > 120 and time.time()-t_prev_msg > 72000:
                 
                 # Message format to post 
                 message =  f"Current R-index at Nurmijärvi (R = {R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
@@ -44,14 +46,14 @@ def main():
                     post(channel_aurora, message)
                     t_prev_msg = time.time()
                 except:
-                    print("Problem at aurora post at", timestamp())
+                    raise("Problem at aurora post at", timestamp())
                 
                 
         # Commands ----------
         # Command for printing all available commands
         help_cmd = "--help"      
-        help_msg =  f"--help for help
---magact for current magnetic activity at Nurmijärvi station"
+        help_msg =  f"""--help for help
+--magact for current magnetic activity at Nurmijärvi station"""
         
         # Command for printing current R-index at Nurmijärvi
         magact_cmd = "--magact"
