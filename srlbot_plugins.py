@@ -1,6 +1,9 @@
 import requests
 import csv
 import numpy as np
+import time
+import datetime
+from authkey import token
 
 def R_index():
     # Making a GET request
@@ -18,3 +21,36 @@ def R_index():
     R_index = (R_data[0] + 2 * R_data[1])/3 /600 *1350 - 140
     
     return R_index
+
+def timestamp():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%c')
+
+
+def post(channel_id = None, message = None):
+    
+    if channel_id == None:
+        print("No channel ID provided!")
+        return
+    
+    if message == None:
+        print("No message provided!")
+        return
+    
+    # The API URL through which posts are made
+    post_url = "https://mattermost.utu.fi/api/v4/posts"
+
+
+    headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {token}",
+    }
+
+    json_data = {
+        "channel_id": channel_id,
+        "message": message,
+    }
+    
+    response = requests.post(post_url, headers=headers, json=json_data)
+        
+def read():
+    pass

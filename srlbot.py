@@ -1,11 +1,10 @@
 import requests
 import time
 import datetime
-from srlbot_plugins import R_index
+from srlbot_plugins import R_index, timestamp, post, read
 from authkey import token
 
-# The API URL through which posts are made
-post_url = "https://mattermost.utu.fi/api/v4/posts"
+
 # The API URL thourgh which posts are read for commands
 read_url = lambda channel_id: f"https://mattermost.utu.fi/api/v4/channels/{channel_id}/posts"
 
@@ -14,16 +13,7 @@ channel_bot_test = "nunmku933pbntxio81uy8hfmwy"
 # Channel id for aurora-watch
 channel_aurora = "c9aysk4bc3be9cb3m6wncgokyc"
 
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"Bearer {token}",
-}
-boottime = datetime.datetime.fromtimestamp(time.time()).strftime('%c')
-json_data = {
-    "channel_id": channel_bot_test,
-    "message": f"Hello! Boot timestamp: {boottime}",
-}
-response = requests.post(post_url, headers=headers, json=json_data)
+post(channel_bot_test, f"Hello! Boot timestamp: {timestamp()}")
 
 
 def main():
@@ -41,25 +31,25 @@ def main():
         if time.time() - t_prev_msrt > 299:
             
             #Fetch data
-            r = requests.get("https://space.fmi.fi/image/realtime/UT/NUR/NURdata_01.txt")
-            R = R_index()
+            try:
+                R = R_index()
+            except:
+                print("Problem at R-index at", timestamp())
         
             # For post testing
             #R = 130
 
             if R > 125 and time.time()-t_prev_msg > 7200:
-                # Post data to mattermost 
-                json_data["channel_id"] = channel_aurora
-                
+
                 message =  f"Current estimated R-index at Nurmijärvi ({R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
-                
                 # For post testing
-                #message = "Testing..."
+                #message = "Testing...""
                 
-                json_data["message"] = message
-                t_prev = time.time()
-                
-                response = requests.post(post_url, headers=headers, json=json_data)
+                try:
+                    post(channel_aurora, message)
+                    t_prev = time.time()
+                except:
+                    print("Problem at aurora post at", timestamp())
                 
         # Get the posts from the channel
         # json_data = {
@@ -76,4 +66,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        pass
+        print("Program stopped at", timestamp())
+    except:
+        print("Program rebooted at", timestamp())
+        main()
