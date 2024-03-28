@@ -1,67 +1,87 @@
-import requests
 import time
-import datetime
 from srlbot_plugins import R_index, timestamp, post, read
 from authkey import token
 
 
+# Channel IDs for posting and reading different channels, can be found in channel information in Mattermost
 # Channel id for bot-test
 channel_bot_test = "nunmku933pbntxio81uy8hfmwy"
 # Channel id for aurora-watch
 channel_aurora = "c9aysk4bc3be9cb3m6wncgokyc"
 
-post(channel_bot_test, f"Hello! Boot timestamp: {timestamp()}")
-
-
 def main():
     
+    # Boot post to channel bot-test
+    post(channel_bot_test, f"Hello! Boot timestamp: {timestamp()}")
     print("Bot booted.")
+    
+    # Set timers for posting magnetic activity and fetching magnetic activity data
     t_prev_msg = 0
     t_prev_msrt = 1
        
+    # Start main program loop
     while(True):
         
         # Have loop check everything every second instead of as fast as possible to conserve the machine
         time.sleep(1)
         
-        # R-index checking and conditional posting
+        # Check R-index every ~5 minutes
         if time.time() - t_prev_msrt > 299:
             
-            #Fetch data
+            # Get the R-index 
             try:
                 R = R_index()
             except:
                 print("Problem at R-index at", timestamp())
         
-            # For post testing
-            #R = 130
-
-            if R > 125 and time.time()-t_prev_msg > 7200:
-
-                message =  f"Current  R-index at Nurmijärvi ({R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
-                # For post testing
-                #message = "Testing...""
+            # Check if R-index exceeds the set threshold and it has been enough time from last post
+            if R > 125 and time.time()-t_prev_msg > 72000:
                 
+                # Message format to post 
+                message =  f"Current R-index at Nurmijärvi (R = {R:.2f}) exceeds the threshold! (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
+                # Post the message and reset the timer
                 try:
                     post(channel_aurora, message)
                     t_prev_msg = time.time()
                 except:
                     print("Problem at aurora post at", timestamp())
                 
-        response = read(channel_bot_test)
+                
+        # Commands ----------
+        # Command for printing all available commands
+        help_cmd = "--help"      
+        help_msg =  f"--help for help
+--magact for current magnetic activity at Nurmijärvi station"
         
-        if response == "--help":
-            post(channel_bot_test, "--help for help")
+        # Command for printing current R-index at Nurmijärvi
+        magact_cmd = "--magact"
+        magact_msg = f"Current R-index at Nurmijärvi: {R:.2f} (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
+        # -------------------
+        
+        # Read the recently arrived messages in channel bot-test 
+        response = read(channel_bot_test)
+        # Check if needs responding to
+        if response == help_cmd:
+            post(channel_bot_test, help_msg)
+        if response == magact_cmd:
+            post(channel_bot_test, magact_msg)
             
-        if response == "--magact":
-            post(channel_bot_test, f"Current R-index at Nurmijärvi: {R:.2f}")
+        # Read the recently arrived messages in channel bot-test 
+        response = read(channel_aurora)
+        # Check if needs responding to
+        if response == help_cmd:
+            post(channel_aurora, help_msg)
+        if response == magact_cmd:
+            post(channel_aurora, magact_msg)
         
         
 if __name__ == "__main__":
     try:
         main()
+    # If script is stopped by hand, stop it 
     except KeyboardInterrupt:
         print("Program stopped at", timestamp())
-    #except:
-       # print("Program stopped at", timestamp())
-        #main()
+    # If script runs into an error, try rebooting
+    except:
+        print("Program rebooted at", timestamp())
+        main()

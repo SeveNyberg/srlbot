@@ -7,31 +7,53 @@ from authkey import token
 
 
 def R_index():
+    """
+    Returns the R-index fetched from FMI's Nurmijärvi station's JSON-file
     
-    # a la Aleksi
-    # url="https://space.fmi.fi/MIRACLE/RWC/r-index/api/NUR.json"
-    # result=$(jq '{time: .data[0].x, R: .data[0].y, curr_time: .data[0].x[-1], curr_\
-    # R: .data[0].y[-1]}' <(curl -s $url))
+    Returns:
+        (float): the most recent R-index at Nurmijärvi station
+    """
     
+    # Fetch the JSON-file
     r = requests.get("https://space.fmi.fi/MIRACLE/RWC/r-index/api/NUR.json")
+    
+    # Parse the most recent value out and return it
     return json.loads(r.content)["data"][0]["y"][-1]
 
 
 def timestamp():
+    """
+    Returns a timestamp in the format DDD MMM dd hh:mm:ss yyyy based on the current Unix time in seconds.
+    
+    Returns:
+        (datetime): the current timestamp (DDD MMM dd hh:mm:ss yyyy).
+    """
+    
     return datetime.datetime.fromtimestamp(time.time()).strftime('%c')
 
 
 def post(channel_id = None, message = None):
+    """
+    Creates a post to the desired channel with the desired message contents.
     
+    Parameters:
+        channel_id (string): The channel ID of the channel one wants to post to, channel IDs can be found in channel information boxes in Mattermost.
+        message (string): The message one wants to post.
+        
+    Returns:
+        None
+    """
+    
+    # Check that a channel ID and a message have been provided
     if channel_id == None:
         raise("No channel ID provided!")
-    
     if message == None:
         raise("No message provided!")
 
     
     # The API URL through which posts are made
     post_url = "https://mattermost.utu.fi/api/v4/posts"
+    # Parameters for requests to post correctly
     headers = { "Content-Type": "application/json",
                 "Authorization": f"Bearer {token}",
                 }
@@ -39,39 +61,51 @@ def post(channel_id = None, message = None):
                     "message": message,
                     }
     
+    # Posting with Python's requests
     response = requests.post(post_url, headers=headers, json=json_data)
         
         
 def read(channel_id = None):
+    """
+    Reads the messages that have arrived on a channel within one second of current time, return message contents for other operations.
     
+    Parameters:
+        channel_id (string): The channel ID of the channel one wants to post to, channel IDs can be found in channel information boxes in Mattermost.
+        
+    Returns:
+        data (string): The contents of the first chosen message (unfortunately not in any order) as a string.
+    """
+    
+    # Check that a channel ID has been provided
     if channel_id == None:
         raise("No channel ID provided!")
     
-    # The API URL thourgh which posts are read for commands
+    # The API URL though which posts are read
     read_url = lambda channel_id: f"https://mattermost.utu.fi/api/v4/channels/{channel_id}/posts"
-    
-    #curl -H 'Authorization: Bearer 4jymwea6btbqmre61wx6XXXXXX' http://localhost:8065/api/v4/channels/y4srrjqzoj8aunnnakb8px79eo/posts\?since\=1603220326473
+    # Parameters for requests to read correctly
     headers = { "Content-Type": "application/json",
                "Authorization": f"Bearer {token}",
                }
-
     params = {
-        'since': int(time.time()*1000-1500),
+        'since': int(time.time()*1000-1000),
     }
 
-    response = requests.get(
-        read_url(channel_id),
-        params=params,
-        headers=headers,
-    )   
+    # Get the whole Requests-object 
+    response = requests.get(read_url(channel_id), params=params, headers=headers,)   
 
+    # Parse for message contents, could be also done with JSON, but message IDs complicate matters when trying to choose just some message that has arrived 
+    # Decode the binary data to a readable string format
     data = response.content.decode()
+    # Look for JSON 'posts' variable contents
     data = data[data.find("posts\":{") + len("posts\":{"):]
     
+    # If 'posts' is empty, return empty string
     if data[0] == "}":
         return ""
+    # Else parse 'posts' content for the first 'message' content
     else:
         data = data[data.find("message\":\"") + len("message\":\""):]
         data = data[:data.find("\"")]
 
+    # Return the parsed message
     return data
