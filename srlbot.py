@@ -67,6 +67,11 @@ def main():
         # Command for printing current R-index at Nurmijärvi
         magact_cmd = "--magact"
         magact_msg = f"Current R-index at Nurmijärvi: {R:.2f} (https://en.ilmatieteenlaitos.fi/auroras-and-space-weather)"
+        
+        # Command for freezing bot in case of malfunction
+        freeze_cmd = "--freeze"
+        freeze_msg = "Bot frozen for 24 hours."
+        
         # -------------------
         
         # Read the recently arrived messages in channel bot-test 
@@ -76,6 +81,10 @@ def main():
             post(channel_bot_test, help_msg)
         if response == magact_cmd:
             post(channel_bot_test, magact_msg)
+        if response == freeze_cmd:
+            post(channel_bot_test, freeze_msg)
+            time.sleep(86400)
+            
             
         # Read the recently arrived messages in channel bot-test 
         response = read(channel_aurora)
@@ -84,7 +93,7 @@ def main():
             post(channel_aurora, help_msg)
         if response == magact_cmd:
             post(channel_aurora, magact_msg)
-        
+            
         
 if __name__ == "__main__":
 
