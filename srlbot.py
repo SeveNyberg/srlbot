@@ -11,16 +11,23 @@ channel_bot_test = "nunmku933pbntxio81uy8hfmwy"
 # Channel id for aurora-watch
 channel_aurora = "c9aysk4bc3be9cb3m6wncgokyc"
 
+# Set timers for posting magnetic activity and fetching magnetic activity data
+t_prev_msg = 0
+t_prev_msrt = 1
+
 def main():
     
+    global t_prev_msg
+    global t_prev_msrt
+        
     # Boot post to channel bot-test
-    post(channel_bot_test, f"Hello! Boot timestamp: {timestamp()}")
-    print("Bot booted.")
+    try:
+        #post(channel_bot_test, f"Hello! Boot timestamp: {timestamp()}")
+        print("Bot booted.")
+    except:
+        print("Boot unsuccesful.")
     
-    # Set timers for posting magnetic activity and fetching magnetic activity data
-    t_prev_msg = 0
-    t_prev_msrt = 1
-       
+
     # Start main program loop
     while(True):
         
@@ -30,11 +37,13 @@ def main():
         # Check R-index every ~5 minutes
         if time.time() - t_prev_msrt > 299:
             
+            t_prev_msrt = time.time()
             # Get the R-index 
             try:
                 R = R_index()
             except:
-                raise("Problem at R-index at", timestamp())
+                print("Problem at R-index at", timestamp())
+                R = 0
         
             # Check if R-index exceeds the set threshold and it has been enough time from last post (~20 h) 
             if R > 120 and time.time()-t_prev_msg > 72000:
@@ -46,7 +55,7 @@ def main():
                     post(channel_aurora, message)
                     t_prev_msg = time.time()
                 except:
-                    raise("Problem at aurora post at", timestamp())
+                    print("Problem at aurora post at", timestamp())
                 
                 
         # Commands ----------
@@ -78,12 +87,17 @@ def main():
         
         
 if __name__ == "__main__":
-    try:
-        main()
-    # If script is stopped by hand, stop it 
-    except KeyboardInterrupt:
-        print("Program stopped at", timestamp())
-    # If script runs into an error, try rebooting
-    except:
-        print("Program rebooted at", timestamp())
-        main()
+
+    while True:
+        try:
+            main()
+        # If script runs into an error, try rebooting
+        # If script is stopped by hand, stop it 
+        except KeyboardInterrupt:
+            print("Program stopped at", timestamp())
+            break
+        except:
+            print("Program rebooted at", timestamp())
+            continue
+                
+   
