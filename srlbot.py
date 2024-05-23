@@ -6,10 +6,8 @@ from authkey import token
 
 
 # Channel IDs for posting and reading different channels, can be found in channel information in Mattermost
-# Channel id for bot-test
-channel_bot_test = "nunmku933pbntxio81uy8hfmwy"
-# Channel id for aurora-watch
-channel_aurora = "c9aysk4bc3be9cb3m6wncgokyc"
+from authkey import channel_bot_test
+from authkey import channel_aurora
 
 # Set timers for posting magnetic activity and fetching magnetic activity data
 t_prev_msg = 0

@@ -54,9 +54,11 @@ def post(channel_id = None, message = None):
     
     # Check that a channel ID and a message have been provided
     if channel_id == None:
-        raise("No channel ID provided!")
+        print("No channel ID provided!")
+        return
     if message == None:
-        raise("No message provided!")
+        print("No message provided!")
+        return
 
     
     # The API URL through which posts are made
@@ -86,7 +88,8 @@ def read(channel_id = None):
     
     # Check that a channel ID has been provided
     if channel_id == None:
-        raise("No channel ID provided!")
+        print("No channel ID provided!")
+        return None
     
     # The API URL though which posts are read
     read_url = lambda channel_id: f"https://mattermost.utu.fi/api/v4/channels/{channel_id}/posts"
